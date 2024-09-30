@@ -3,18 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Security.Principal;
-using System.Text;
 using System.Timers;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Threading; // For DispatcherTimer
-using Microsoft.Win32;
-using System.Threading.Tasks; // For async/await
-using Hardcodet.Wpf.TaskbarNotification; // Namespace for TaskbarIcon
-
-
+using System.Windows.Threading;
+using Hardcodet.Wpf.TaskbarNotification;
+using System.Windows.Input;
 
 
 namespace WebsiteAndAppBlocker
@@ -25,19 +19,15 @@ namespace WebsiteAndAppBlocker
         private Timer processMonitorTimer;
         private List<string> blockedApps = new List<string>();
         private List<string> blockedWebsites = new List<string>();
-        private DateTime lastCheckTime;
-        private string hashedPassword;
-
-        private string blockedWebsitesFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WebsiteAndAppBlocker", "blocked_websites.txt");
-        private string blockedAppsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WebsiteAndAppBlocker", "blocked_apps.txt");
         private Dictionary<DateTime, int> unblockAttempts = new Dictionary<DateTime, int>();
         private int maxAttemptsPerHour = 2; // Maximum attempts allowed per hour
 
-
+        private string blockedWebsitesFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WebsiteAndAppBlocker", "blocked_websites.txt");
+        private string blockedAppsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WebsiteAndAppBlocker", "blocked_apps.txt");
 
         // Blocking period (8 AM to 6 PM)
-        private TimeSpan blockingStartTime = new TimeSpan(8, 0, 0);
-        private TimeSpan blockingEndTime = new TimeSpan(18, 0, 0);
+        private TimeSpan blockingStartTime = new TimeSpan(4, 0, 0);
+        private TimeSpan blockingEndTime = new TimeSpan(22, 0, 0);
 
         // DispatcherTimer for UI updates
         private DispatcherTimer uiUpdateTimer;
@@ -56,16 +46,12 @@ namespace WebsiteAndAppBlocker
 
             // Start process monitoring
             StartProcessMonitoring();
-            lastCheckTime = DateTime.Now;
 
             // Start UI update timer
             StartUIUpdateTimer();
 
             // Handle the StateChanged event
             this.StateChanged += MainWindow_StateChanged;
-
-            // Handle the Closing event
-            this.Closing += Window_Closing;
 
             // Hide window during blocking period
             if (IsWithinBlockingPeriod())
@@ -204,7 +190,7 @@ namespace WebsiteAndAppBlocker
                 return;
             }
 
-            if (IsWithinBlockingPeriod() && !AuthenticateUser())
+            if (IsWithinBlockingPeriod() && !PromptForAuthentication())
                 return;
 
             string website = WebsiteTextBox.Text.Trim();
@@ -224,7 +210,8 @@ namespace WebsiteAndAppBlocker
                 return;
             }
 
-            if (IsWithinBlockingPeriod() && !AuthenticateUser())
+            // Always prompt for authentication before unblocking
+            if (!PromptForAuthentication())
                 return;
 
             if (!CanAttemptUnblock())
@@ -248,7 +235,6 @@ namespace WebsiteAndAppBlocker
         }
 
 
-
         private void UnblockSelectedWebsiteButton_Click(object sender, RoutedEventArgs e)
         {
             if (!IsAdministrator())
@@ -257,7 +243,8 @@ namespace WebsiteAndAppBlocker
                 return;
             }
 
-            if (IsWithinBlockingPeriod() && !AuthenticateUser())
+            // Always prompt for authentication before unblocking
+            if (!PromptForAuthentication())
                 return;
 
             if (!CanAttemptUnblock())
@@ -312,7 +299,7 @@ namespace WebsiteAndAppBlocker
 
         private void BlockSelectedAppButton_Click(object sender, RoutedEventArgs e)
         {
-            if (IsWithinBlockingPeriod() && !AuthenticateUser())
+            if (IsWithinBlockingPeriod() && !PromptForAuthentication())
                 return;
 
             if (RunningAppsListBox.SelectedValue != null)
@@ -338,7 +325,7 @@ namespace WebsiteAndAppBlocker
 
         private void BlockAppButton_Click(object sender, RoutedEventArgs e)
         {
-            if (IsWithinBlockingPeriod() && !AuthenticateUser())
+            if (IsWithinBlockingPeriod() && !PromptForAuthentication())
                 return;
 
             string appName = AppTextBox.Text.Trim();
@@ -353,7 +340,8 @@ namespace WebsiteAndAppBlocker
 
         private void UnblockSelectedAppButton_Click(object sender, RoutedEventArgs e)
         {
-            if (IsWithinBlockingPeriod() && !AuthenticateUser())
+            // Always prompt for authentication before unblocking
+            if (!PromptForAuthentication())
                 return;
 
             if (!CanAttemptUnblock())
@@ -382,7 +370,6 @@ namespace WebsiteAndAppBlocker
         }
 
 
-
         private void RefreshAppListButton_Click(object sender, RoutedEventArgs e)
         {
             var processes = Process.GetProcesses()
@@ -399,12 +386,114 @@ namespace WebsiteAndAppBlocker
         // Password setting
         private void SetPasswordButton_Click(object sender, RoutedEventArgs e)
         {
-            string password = PasswordBox.Password;
-            if (!string.IsNullOrEmpty(password))
+            string newPassword = PasswordBox.Password.Trim();
+
+            if (string.IsNullOrEmpty(newPassword))
             {
-                hashedPassword = ComputeSha256Hash(password);
-                MessageBox.Show("Password set");
+                MessageBox.Show("Password cannot be empty.");
+                return;
             }
+
+            string hashedPassword = HashPassword(newPassword);
+
+            try
+            {
+                string passwordFilePath = GetPasswordFilePath();
+                File.WriteAllText(passwordFilePath, hashedPassword);
+                MessageBox.Show("Password has been set successfully.");
+                PasswordBox.Clear();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to set password: {ex.Message}");
+            }
+        }
+
+
+        private string HashPassword(string password)
+        {
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                return Convert.ToBase64String(bytes);
+            }
+        }
+
+        private string GetPasswordFilePath()
+        {
+            string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string appFolder = Path.Combine(appDataPath, "WebsiteAndAppBlocker");
+            if (!Directory.Exists(appFolder))
+            {
+                Directory.CreateDirectory(appFolder);
+            }
+            return Path.Combine(appFolder, "password.txt");
+        }
+
+        private void ChangePasswordButton_Click(object sender, RoutedEventArgs e)
+        {
+            string currentPassword = CurrentPasswordBox.Password.Trim();
+            string newPassword = NewPasswordBox.Password.Trim();
+            string confirmNewPassword = ConfirmNewPasswordBox.Password.Trim();
+
+            if (string.IsNullOrEmpty(currentPassword) || string.IsNullOrEmpty(newPassword) || string.IsNullOrEmpty(confirmNewPassword))
+            {
+                MessageBox.Show("All password fields are required.");
+                return;
+            }
+
+            // Authenticate current password
+            if (!AuthenticateUser(currentPassword))
+            {
+                MessageBox.Show("Current password is incorrect.");
+                return;
+            }
+
+            if (newPassword != confirmNewPassword)
+            {
+                MessageBox.Show("New passwords do not match.");
+                return;
+            }
+
+            // Set new password
+            string hashedPassword = HashPassword(newPassword);
+            string passwordFilePath = GetPasswordFilePath();
+            File.WriteAllText(passwordFilePath, hashedPassword);
+
+            MessageBox.Show("Password has been changed successfully.");
+            CurrentPasswordBox.Clear();
+            NewPasswordBox.Clear();
+            ConfirmNewPasswordBox.Clear();
+        }
+
+        // Authentication methods
+        private bool AuthenticateUser(string password)
+        {
+            string passwordFilePath = GetPasswordFilePath();
+
+            if (!File.Exists(passwordFilePath))
+            {
+                // No password set
+                return true;
+            }
+
+            if (string.IsNullOrEmpty(password))
+                return false;
+
+            string storedHashedPassword = File.ReadAllText(passwordFilePath);
+            string enteredHashedPassword = HashPassword(password);
+
+            return storedHashedPassword == enteredHashedPassword;
+        }
+
+        private bool PromptForAuthentication()
+        {
+            // Show the login window
+            LoginWindow loginWindow = new LoginWindow();
+            loginWindow.Owner = this;
+            loginWindow.ShowDialog();
+
+            return loginWindow.IsAuthenticated;
         }
 
         // Helper methods
@@ -436,18 +525,12 @@ namespace WebsiteAndAppBlocker
             TrayIcon.Visibility = Visibility.Collapsed;
         }
 
-        // Handle the Close event to minimize to tray instead of closing
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            // Prevent closing and instead minimize to tray
-            e.Cancel = true;
-            this.Hide();
-            ShowTrayIcon();
-        }
-
         // Tray icon menu item: Open
         private void TrayMenu_Open_Click(object sender, RoutedEventArgs e)
         {
+            if (!PromptForAuthentication())
+                return;
+
             this.Show();
             this.WindowState = WindowState.Normal;
             this.Activate();
@@ -457,7 +540,6 @@ namespace WebsiteAndAppBlocker
         // Tray icon menu item: Exit
         private void TrayMenu_Exit_Click(object sender, RoutedEventArgs e)
         {
-            // Optionally, prompt for password before exiting
             if (IsWithinBlockingPeriod())
             {
                 MessageBox.Show("The application cannot be closed during study hours.");
@@ -468,18 +550,20 @@ namespace WebsiteAndAppBlocker
             TrayIcon.Dispose();
 
             // Close the application
+            canClose = false;
             Application.Current.Shutdown();
         }
 
         private void TrayIcon_TrayMouseDoubleClick(object sender, RoutedEventArgs e)
         {
+            if (!PromptForAuthentication())
+                return;
+
             this.Show();
             this.WindowState = WindowState.Normal;
             this.Activate();
             HideTrayIcon();
         }
-
-
 
         private void SaveBlockedWebsitesToFile()
         {
@@ -549,9 +633,6 @@ namespace WebsiteAndAppBlocker
             uiUpdateTimer.Start();
         }
 
-
-
-        // Modify the UIUpdateTimer_Tick method
         private void UIUpdateTimer_Tick(object sender, EventArgs e)
         {
             if (IsWithinBlockingPeriod())
@@ -580,51 +661,25 @@ namespace WebsiteAndAppBlocker
             TrayIcon.Dispose();
         }
 
-        // Authenticate user
-        private bool AuthenticateUser()
+        private void AboutMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (!string.IsNullOrEmpty(hashedPassword))
-            {
-                string inputPassword = Microsoft.VisualBasic.Interaction.InputBox("Enter Password:", "Password Required", "", -1, -1);
-                if (ComputeSha256Hash(inputPassword) == hashedPassword)
-                {
-                    return true;
-                }
-                else
-                {
-                    MessageBox.Show("Incorrect Password");
-                    return false;
-                }
-            }
-            else
-            {
-                // No password set
-                return true;
-            }
+            AboutWindow aboutWindow = new AboutWindow();
+            aboutWindow.Owner = this;
+            aboutWindow.ShowDialog();
         }
 
-        // Password hashing method
-        private string ComputeSha256Hash(string rawData)
-        {
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                // Compute the hash
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+        // Flag to allow closing
+        private bool canClose = false;
 
-                // Convert byte array to a string
-                StringBuilder builder = new StringBuilder();
-                foreach (var b in bytes)
-                {
-                    builder.Append(b.ToString("x2"));
-                }
-
-                return builder.ToString();
-            }
-        }
-
-        // Prevent closing without password
+        // Handle the Close event to prevent closing during blocking period
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
+            if (canClose)
+            {
+                base.OnClosing(e);
+                return;
+            }
+
             if (IsWithinBlockingPeriod())
             {
                 e.Cancel = true; // Prevent closing
@@ -637,7 +692,14 @@ namespace WebsiteAndAppBlocker
                 {
                     e.Cancel = true;
                 }
+                else
+                {
+                    canClose = false;
+                    Application.Current.Shutdown();
+                }
             }
         }
+
+
     }
 }

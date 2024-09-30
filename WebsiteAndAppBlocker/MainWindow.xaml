@@ -3,8 +3,7 @@
         xmlns:tb="http://www.hardcodet.net/taskbar"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Website and App Blocker" Height="600" Width="800"
-        WindowStartupLocation="CenterScreen"
-        Closing="Window_Closing">
+        WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <!-- Define styles for buttons and other controls -->
         <Style x:Key="ModernButtonStyle" TargetType="Button">
@@ -20,6 +19,12 @@
     </Window.Resources>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Menu -->
+            <RowDefinition Height="*"/>
+            <!-- Content -->
+        </Grid.RowDefinitions>
         <!-- TaskbarIcon Control -->
         <tb:TaskbarIcon x:Name="TrayIcon"
                         IconSource="pack://application:,,,/Resources/shield_512px.ico"
@@ -33,9 +38,14 @@
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
-
+        <!-- Menu Bar -->
+        <Menu Grid.Row="0">
+            <MenuItem Header="Help">
+                <MenuItem Header="About" Click="AboutMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
         <!-- Main Content -->
-        <TabControl>
+        <TabControl Grid.Row="1">
             <!-- Website Blocking Tab -->
             <TabItem Header="Website Blocking">
                 <Grid Margin="20">
@@ -125,12 +135,32 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Password Protection -->
+                    <!-- Set Password Section -->
                     <StackPanel Grid.Row="0" Orientation="Vertical">
                         <TextBlock Text="Set Password:" Style="{StaticResource SectionHeaderStyle}"/>
                         <StackPanel Orientation="Horizontal">
                             <PasswordBox x:Name="PasswordBox" Width="300" Height="30" Margin="0,0,10,0"/>
                             <Button Content="Set Password" Click="SetPasswordButton_Click" Style="{StaticResource ModernButtonStyle}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Change Password Section -->
+                    <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0,20,0,0">
+                        <TextBlock Text="Change Password:" Style="{StaticResource SectionHeaderStyle}"/>
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Vertical" Margin="0,5,0,0">
+                                <TextBlock Text="Current Password:"/>
+                                <PasswordBox x:Name="CurrentPasswordBox" Width="300" Height="30"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Margin="0,5,0,0">
+                                <TextBlock Text="New Password:"/>
+                                <PasswordBox x:Name="NewPasswordBox" Width="300" Height="30"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical" Margin="0,5,0,0">
+                                <TextBlock Text="Confirm New Password:"/>
+                                <PasswordBox x:Name="ConfirmNewPasswordBox" Width="300" Height="30"/>
+                            </StackPanel>
+                            <Button Content="Change Password" Click="ChangePasswordButton_Click" Style="{StaticResource ModernButtonStyle}" Margin="0,10,0,0" Width="150"/>
                         </StackPanel>
                     </StackPanel>
                 </Grid>
