@@ -1,8 +1,8 @@
 # Website and App Blocker
 
-![License](https://img.shields.io/github/license/MohammedTsmu/WebsiteAndAppBlocker)
-![Issues](https://img.shields.io/github/issues/MohammedTsmu/WebsiteAndAppBlocker)
-![Stars](https://img.shields.io/github/stars/MohammedTsmu/WebsiteAndAppBlocker?style=social)
+[![License](https://img.shields.io/github/license/MohammedTsmu/WebsiteAndAppBlocker)](https://github.com/MohammedTsmu/WebsiteAndAppBlocker/blob/master/LICENSE.txt)
+[![Issues](https://img.shields.io/github/issues/MohammedTsmu/WebsiteAndAppBlocker)](https://github.com/MohammedTsmu/WebsiteAndAppBlocker/issues)
+[![Stars](https://img.shields.io/github/stars/MohammedTsmu/WebsiteAndAppBlocker?style=social)](https://github.com/MohammedTsmu/WebsiteAndAppBlocker/stargazers)
 
 ## Overview
 
