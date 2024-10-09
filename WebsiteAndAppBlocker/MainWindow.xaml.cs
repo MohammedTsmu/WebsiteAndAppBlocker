@@ -62,9 +62,12 @@ namespace WebsiteAndAppBlocker
             }
             else
             {
-                // Optionally, start minimized even outside blocking period
-                // this.WindowState = WindowState.Minimized;
+                //Optionally, start minimized even outside blocking period
+                 this.WindowState = WindowState.Minimized;
             }
+
+            // Disable Set Password section if password already exists
+            CheckPasswordStatus();
         }
 
         // Administrator check
@@ -191,9 +194,6 @@ namespace WebsiteAndAppBlocker
                 return;
             }
 
-            //if (IsWithinBlockingPeriod() && !PromptForAuthentication())
-            //    return;
-
             string website = WebsiteTextBox.Text.Trim();
             if (!string.IsNullOrEmpty(website))
             {
@@ -300,9 +300,6 @@ namespace WebsiteAndAppBlocker
 
         private void BlockSelectedAppButton_Click(object sender, RoutedEventArgs e)
         {
-            //if (IsWithinBlockingPeriod() && !PromptForAuthentication())
-            //    return;
-
             if (RunningAppsListBox.SelectedValue != null)
             {
                 string appName = RunningAppsListBox.SelectedValue.ToString();
@@ -326,9 +323,6 @@ namespace WebsiteAndAppBlocker
 
         private void BlockAppButton_Click(object sender, RoutedEventArgs e)
         {
-            //if (IsWithinBlockingPeriod() && !PromptForAuthentication())
-            //    return;
-
             string appName = AppTextBox.Text.Trim();
             if (!string.IsNullOrEmpty(appName))
             {
@@ -387,6 +381,15 @@ namespace WebsiteAndAppBlocker
         // Password setting
         private void SetPasswordButton_Click(object sender, RoutedEventArgs e)
         {
+            string passwordFilePath = GetPasswordFilePath();
+
+            if (File.Exists(passwordFilePath))
+            {
+                // Password already exists
+                MessageBox.Show("A password has already been set. Please use the Change Password section to update your password.");
+                return;
+            }
+
             string newPassword = PasswordBox.Password.Trim();
 
             if (string.IsNullOrEmpty(newPassword))
@@ -399,10 +402,18 @@ namespace WebsiteAndAppBlocker
 
             try
             {
-                string passwordFilePath = GetPasswordFilePath();
                 File.WriteAllText(passwordFilePath, hashedPassword);
                 MessageBox.Show("Password has been set successfully.");
                 PasswordBox.Clear();
+
+                // Disable the Set Password section
+                DisableSetPasswordSection();
+
+                // Update password status
+                PasswordStatusTextBlock.Text = "A password is currently set.";
+
+                // Show Change Password section
+                ChangePasswordSection.Visibility = Visibility.Visible;
             }
             catch (Exception ex)
             {
@@ -410,7 +421,40 @@ namespace WebsiteAndAppBlocker
             }
         }
 
+        private void CheckPasswordStatus()
+        {
+            string passwordFilePath = GetPasswordFilePath();
 
+            if (File.Exists(passwordFilePath))
+            {
+                // Password exists, disable Set Password section
+                DisableSetPasswordSection();
+                PasswordStatusTextBlock.Text = "A password is currently set.";
+
+                // Ensure Change Password section is visible
+                ChangePasswordSection.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                PasswordStatusTextBlock.Text = "No password is set. Please set a password.";
+
+                // Hide Change Password section
+                DisableChangePasswordSection();
+            }
+        }
+
+        private void DisableSetPasswordSection()
+        {
+            SetPasswordSection.Visibility = Visibility.Collapsed;
+        }
+
+        private void DisableChangePasswordSection()
+        {
+            ChangePasswordSection.Visibility = Visibility.Collapsed;
+        }
+
+
+        // Helper methods
         private string HashPassword(string password)
         {
             using (var sha256 = System.Security.Cryptography.SHA256.Create())
@@ -420,6 +464,7 @@ namespace WebsiteAndAppBlocker
             }
         }
 
+        
         private string GetPasswordFilePath()
         {
             string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -431,6 +476,7 @@ namespace WebsiteAndAppBlocker
             return Path.Combine(appFolder, "password.txt");
         }
 
+        
         private void ChangePasswordButton_Click(object sender, RoutedEventArgs e)
         {
             string currentPassword = CurrentPasswordBox.Password.Trim();
@@ -467,6 +513,8 @@ namespace WebsiteAndAppBlocker
             ConfirmNewPasswordBox.Clear();
         }
 
+
+
         // Authentication methods
         private bool AuthenticateUser(string password)
         {
@@ -498,11 +546,6 @@ namespace WebsiteAndAppBlocker
         }
 
         // Helper methods
-        //private bool IsWithinBlockingPeriod()
-        //{
-        //    TimeSpan now = DateTime.Now.TimeOfDay;
-        //    return (now >= blockingStartTime) && (now <= blockingEndTime);
-        //}
         private bool IsWithinBlockingPeriod()
         {
             TimeSpan now = DateTime.Now.TimeOfDay;
@@ -650,26 +693,7 @@ namespace WebsiteAndAppBlocker
             uiUpdateTimer.Start();
         }
 
-        //private void UIUpdateTimer_Tick(object sender, EventArgs e)
-        //{
-        //    if (IsWithinBlockingPeriod())
-        //    {
-        //        if (this.IsVisible && !this.IsActive)
-        //        {
-        //            this.Hide();
-        //            ShowTrayIcon();
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (!this.IsVisible)
-        //        {
-        //            this.Show();
-        //            this.WindowState = WindowState.Normal;
-        //            HideTrayIcon();
-        //        }
-        //    }
-        //}
+        
         private void UIUpdateTimer_Tick(object sender, EventArgs e)
         {
             if (IsWithinBlockingPeriod())

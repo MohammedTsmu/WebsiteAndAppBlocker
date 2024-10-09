@@ -27,9 +27,9 @@
         </Grid.RowDefinitions>
         <!-- TaskbarIcon Control -->
         <tb:TaskbarIcon x:Name="TrayIcon"
-                        IconSource="pack://application:,,,/Resources/shield_512px.ico"
+                        IconSource="pack://application:,,,/WebsiteAndAppBlocker;component/Resources/shield_512px.ico"
                         Visibility="Collapsed"
-                        ToolTipText="Website and App Blocker"
+                        ToolTipText="Website and App Blocker - Double-click to open"
                         TrayMouseDoubleClick="TrayIcon_TrayMouseDoubleClick">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
@@ -63,19 +63,19 @@
                         <TextBlock Text="Website to Block:" Style="{StaticResource SectionHeaderStyle}"/>
                         <StackPanel Orientation="Horizontal">
                             <TextBox x:Name="WebsiteTextBox" Width="300" Height="30" Margin="0,0,10,0"/>
-                            <Button Content="Block" Click="BlockWebsiteButton_Click" Style="{StaticResource ModernButtonStyle}" Width="200" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <Button Content="Block" Click="BlockWebsiteButton_Click" Style="{StaticResource ModernButtonStyle}" Width="200" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </StackPanel>
                     </StackPanel>
 
                     <!-- Blocked Websites List -->
                     <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Vertical">
                         <TextBlock Text="Blocked Websites:" Style="{StaticResource SectionHeaderStyle}"/>
-                        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Width="714" HorizontalAlignment="Left">
-                            <ScrollViewer Height="315" HorizontalAlignment="Center" Width="698" VerticalAlignment="Center">
-                                <ListBox x:Name="BlockedWebsitesListBox" Width="688" HorizontalAlignment="Center"/>
+                        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" HorizontalAlignment="Stretch">
+                            <ScrollViewer Height="315">
+                                <ListBox x:Name="BlockedWebsitesListBox" HorizontalAlignment="Stretch"/>
                             </ScrollViewer>
                         </Border>
-                        <Button Content="Unblock Selected Website" Click="UnblockSelectedWebsiteButton_Click" Width="200" Style="{StaticResource ModernButtonStyle}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <Button Content="Unblock Selected Website" Click="UnblockSelectedWebsiteButton_Click" Width="200" Style="{StaticResource ModernButtonStyle}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Grid>
             </TabItem>
@@ -132,10 +132,14 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
+                    <!-- Password Status -->
+                    <TextBlock x:Name="PasswordStatusTextBlock" Grid.Row="0" Margin="0,0,0,10" FontWeight="Bold"/>
+
                     <!-- Set Password Section -->
-                    <StackPanel Grid.Row="0" Orientation="Vertical">
+                    <StackPanel x:Name="SetPasswordSection" Grid.Row="1" Orientation="Vertical">
                         <TextBlock Text="Set Password:" Style="{StaticResource SectionHeaderStyle}"/>
                         <StackPanel Orientation="Horizontal">
                             <PasswordBox x:Name="PasswordBox" Width="300" Height="30" Margin="0,0,10,0"/>
@@ -144,7 +148,7 @@
                     </StackPanel>
 
                     <!-- Change Password Section -->
-                    <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0,20,0,0">
+                    <StackPanel x:Name="ChangePasswordSection" Grid.Row="2" Orientation="Vertical" Margin="0,20,0,0">
                         <TextBlock Text="Change Password:" Style="{StaticResource SectionHeaderStyle}"/>
                         <StackPanel Orientation="Vertical">
                             <StackPanel Orientation="Vertical" Margin="0,5,0,0">
