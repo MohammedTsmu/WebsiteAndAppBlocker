@@ -55,6 +55,9 @@
   <PropertyGroup>
     <ApplicationIcon>Resources\shield_512px.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>WebsiteAndAppBlocker.App</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Hardcodet.Wpf.TaskbarNotification, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Hardcodet.NotifyIcon.Wpf.1.0.5\lib\net451\Hardcodet.Wpf.TaskbarNotification.dll</HintPath>
@@ -155,7 +158,9 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Resources\shield_jpg512px.jpg" />
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\shield_512px.ico" />
   </ItemGroup>

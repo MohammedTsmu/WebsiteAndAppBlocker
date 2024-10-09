@@ -25,9 +25,10 @@ namespace WebsiteAndAppBlocker
         private string blockedWebsitesFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WebsiteAndAppBlocker", "blocked_websites.txt");
         private string blockedAppsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WebsiteAndAppBlocker", "blocked_apps.txt");
 
-        // Blocking period (8 AM to 6 PM)
-        private TimeSpan blockingStartTime = new TimeSpan(4, 0, 0);
-        private TimeSpan blockingEndTime = new TimeSpan(22, 0, 0);
+        // Blocking period from 4 AM to midnight (00:00 of the next day)
+        private TimeSpan blockingStartTime = new TimeSpan(4, 0, 0);   // 4 AM
+        private TimeSpan blockingEndTime = new TimeSpan(0, 0, 0);     // Midnight (next day)
+
 
         // DispatcherTimer for UI updates
         private DispatcherTimer uiUpdateTimer;
@@ -190,8 +191,8 @@ namespace WebsiteAndAppBlocker
                 return;
             }
 
-            if (IsWithinBlockingPeriod() && !PromptForAuthentication())
-                return;
+            //if (IsWithinBlockingPeriod() && !PromptForAuthentication())
+            //    return;
 
             string website = WebsiteTextBox.Text.Trim();
             if (!string.IsNullOrEmpty(website))
@@ -299,8 +300,8 @@ namespace WebsiteAndAppBlocker
 
         private void BlockSelectedAppButton_Click(object sender, RoutedEventArgs e)
         {
-            if (IsWithinBlockingPeriod() && !PromptForAuthentication())
-                return;
+            //if (IsWithinBlockingPeriod() && !PromptForAuthentication())
+            //    return;
 
             if (RunningAppsListBox.SelectedValue != null)
             {
@@ -325,8 +326,8 @@ namespace WebsiteAndAppBlocker
 
         private void BlockAppButton_Click(object sender, RoutedEventArgs e)
         {
-            if (IsWithinBlockingPeriod() && !PromptForAuthentication())
-                return;
+            //if (IsWithinBlockingPeriod() && !PromptForAuthentication())
+            //    return;
 
             string appName = AppTextBox.Text.Trim();
             if (!string.IsNullOrEmpty(appName))
@@ -497,11 +498,27 @@ namespace WebsiteAndAppBlocker
         }
 
         // Helper methods
+        //private bool IsWithinBlockingPeriod()
+        //{
+        //    TimeSpan now = DateTime.Now.TimeOfDay;
+        //    return (now >= blockingStartTime) && (now <= blockingEndTime);
+        //}
         private bool IsWithinBlockingPeriod()
         {
             TimeSpan now = DateTime.Now.TimeOfDay;
-            return (now >= blockingStartTime) && (now <= blockingEndTime);
+
+            if (blockingStartTime <= blockingEndTime)
+            {
+                // For periods within the same day
+                return now >= blockingStartTime && now <= blockingEndTime;
+            }
+            else
+            {
+                // For periods that span midnight
+                return now >= blockingStartTime || now <= blockingEndTime;
+            }
         }
+
 
         // Handle window state changes
         private void MainWindow_StateChanged(object sender, EventArgs e)
@@ -633,14 +650,38 @@ namespace WebsiteAndAppBlocker
             uiUpdateTimer.Start();
         }
 
+        //private void UIUpdateTimer_Tick(object sender, EventArgs e)
+        //{
+        //    if (IsWithinBlockingPeriod())
+        //    {
+        //        if (this.IsVisible && !this.IsActive)
+        //        {
+        //            this.Hide();
+        //            ShowTrayIcon();
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (!this.IsVisible)
+        //        {
+        //            this.Show();
+        //            this.WindowState = WindowState.Normal;
+        //            HideTrayIcon();
+        //        }
+        //    }
+        //}
         private void UIUpdateTimer_Tick(object sender, EventArgs e)
         {
             if (IsWithinBlockingPeriod())
             {
-                if (this.IsVisible)
+                if (this.WindowState == WindowState.Minimized && this.IsVisible)
                 {
                     this.Hide();
                     ShowTrayIcon();
+
+                    // Show notification
+                    ShowTrayNotification("The application has been minimized to the system tray. Click the tray icon to reopen it.");
+                
                 }
             }
             else
@@ -653,6 +694,12 @@ namespace WebsiteAndAppBlocker
                 }
             }
         }
+        private void ShowTrayNotification(string message)
+        {
+            TrayIcon.ShowBalloonTip("Website and App Blocker", message, BalloonIcon.Info);
+        }
+
+
 
         // Remember to dispose of resources
         protected override void OnClosed(EventArgs e)

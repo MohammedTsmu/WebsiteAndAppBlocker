@@ -69,5 +69,15 @@ namespace WebsiteAndAppBlocker.Properties {
                 return ((System.Drawing.Icon)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap shield_jpg512px {
+            get {
+                object obj = ResourceManager.GetObject("shield_jpg512px", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

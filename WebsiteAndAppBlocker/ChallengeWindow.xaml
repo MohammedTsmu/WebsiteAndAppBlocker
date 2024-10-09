@@ -1,7 +1,7 @@
 ﻿<Window x:Class="WebsiteAndAppBlocker.ChallengeWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Challenge" Height="350" Width="500" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        Title="Challenge" Height="233" Width="500" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="None">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -28,6 +28,6 @@
 
         <TextBox x:Name="MathAnswerTextBox" Grid.Row="4" Width="450" Height="25" Margin="0,0,0,10"/>
 
-        <Button Content="Submit" Click="SubmitButton_Click" Grid.Row="5" Width="100"/>
+        <Button Content="Submit" Click="SubmitButton_Click" Grid.Row="5" Margin="15,0,15,-35"/>
     </Grid>
 </Window>

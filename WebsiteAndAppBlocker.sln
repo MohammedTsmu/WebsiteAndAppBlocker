@@ -5,6 +5,8 @@ VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebsiteAndAppBlocker", "WebsiteAndAppBlocker\WebsiteAndAppBlocker.csproj", "{0306FE1B-591F-49DE-A2D8-888DF06D7405}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Website And App Blocker Setup", "Website And App Blocker Setup\Website And App Blocker Setup.vdproj", "{736C016E-7DCB-4475-B637-8916383B2123}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,8 @@ Global
 		{0306FE1B-591F-49DE-A2D8-888DF06D7405}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0306FE1B-591F-49DE-A2D8-888DF06D7405}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0306FE1B-591F-49DE-A2D8-888DF06D7405}.Release|Any CPU.Build.0 = Release|Any CPU
+		{736C016E-7DCB-4475-B637-8916383B2123}.Debug|Any CPU.ActiveCfg = Debug
+		{736C016E-7DCB-4475-B637-8916383B2123}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

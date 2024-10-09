@@ -39,15 +39,15 @@ namespace WebsiteAndAppBlocker
             if (!System.IO.File.Exists(passwordFilePath))
             {
                 // No password is set; allow access
-                MessageBox.Show("No password file found. Allowing access.");
+                //MessageBox.Show("No password file found. Allowing access.");
                 return true;
             }
 
-            MessageBox.Show("Password file found.");
+            //MessageBox.Show("Password file found.");
 
             if (string.IsNullOrEmpty(password))
             {
-                MessageBox.Show("Password is empty. Denying access.");
+                //MessageBox.Show("Password is empty. Denying access.");
                 return false;
             }
 
@@ -56,12 +56,12 @@ namespace WebsiteAndAppBlocker
 
             if (storedHashedPassword == enteredHashedPassword)
             {
-                MessageBox.Show("Passwords match. Access granted.");
+                //MessageBox.Show("Passwords match. Access granted.");
                 return true;
             }
             else
             {
-                MessageBox.Show("Passwords do not match. Access denied.");
+                //MessageBox.Show("Passwords do not match. Access denied.");
                 return false;
             }
         }
